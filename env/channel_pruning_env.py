@@ -330,13 +330,13 @@ class ChannelPruningEnv:
             print('*** USE REAL VALIDATION SET!')
 
     def _build_index(self):
-        self.prunable_idx = []
-        self.prunable_ops = []
+        self.prunable_idx = [] # 可以prune的层的索引
+        self.prunable_ops = [] # 可以prune的层的结构，nn.Conv2d(没有groups)和nn.Linear
         self.layer_type_dict = {}
         self.strategy_dict = {}
-        self.buffer_dict = {}
+        self.buffer_dict = {} # 保存的是nn.Conv2d(有groups)的索引
         this_buffer_list = []
-        self.org_channels = []
+        self.org_channels = [] # 输入通道数(conv)或输入特征节点数(nn.Linear)
         # build index and the min strategy dict
         for i, m in enumerate(self.model.modules()):
             if type(m) in self.prunable_layer_types:
@@ -385,6 +385,7 @@ class ChannelPruningEnv:
         self.index_buffer = {}
 
     def _extract_layer_information(self):
+        # 提取每个基本操作(如Conv2d和Linear)的参数大小和FLOPs
         m_list = list(self.model.modules())
 
         self.data_saver = []
@@ -502,7 +503,7 @@ class ChannelPruningEnv:
                             (self.layer_info_dict[idx]['input_feat'], f_in2save))
 
     def _build_state_embedding(self):
-        # build the static part of the state embedding
+        # build the static part of the state embedding 给每层结构编码
         layer_embedding = []
         module_list = list(self.model.modules())
         for i, ind in enumerate(self.prunable_idx):
